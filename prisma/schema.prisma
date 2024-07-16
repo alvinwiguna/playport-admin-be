@@ -1,0 +1,265 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model user {
+  id                        Int          @id @default(autoincrement())
+  affiliate_promo_code_id   Int?         @db.UnsignedInt
+  panel_id                  Int          @default(0) @db.UnsignedInt
+  user_uuid                 String       @db.VarChar(36)
+  panel_username            String?      @db.VarChar(255)
+  email                     String?      @db.VarChar(255)
+  name_first                String?      @db.VarChar(255)
+  name_last                 String?      @db.VarChar(255)
+  secret_question           String?      @db.VarChar(255)
+  secret_answer             String?      @db.VarChar(255)
+  reset_password_token      String?      @db.VarChar(255)
+  reset_password_expire     DateTime?    @db.DateTime(0)
+  is_email_verified         Boolean      @default(false)
+  verification_token        String?      @db.VarChar(255)
+  verification_token_expire DateTime?    @db.DateTime(0)
+  created_at                DateTime?    @default(now()) @db.DateTime(0)
+  updated_at                DateTime?    @db.DateTime(0)
+  deleted_at                DateTime?    @db.DateTime(0)
+  order                     order[]
+  user_login                user_login[]
+}
+
+model user_login {
+  id               Int       @id @default(autoincrement())
+  user_id          Int
+  login_token      String    @db.VarChar(255)
+  token_expired_at DateTime? @db.DateTime(0)
+  user_agent       String?   @db.VarChar(255)
+  ip_address       String?   @db.VarChar(50)
+  created_at       DateTime? @default(now()) @db.DateTime(0)
+  updated_at       DateTime? @db.DateTime(0)
+  deleted_at       DateTime? @db.DateTime(0)
+  user             user      @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_user_login_user")
+
+  @@index([user_id], map: "fk_user_login_user")
+}
+
+model billing_cycle {
+  id           Int       @id @default(autoincrement()) @db.UnsignedInt
+  name         String    @db.VarChar(255)
+  months       Int       @default(0) @db.UnsignedInt
+  days         Int       @default(0) @db.UnsignedInt
+  disc_percent Decimal   @default(0.00) @db.Decimal(5, 2)
+  created_at   DateTime  @default(now()) @db.DateTime(0)
+  updated_at   DateTime? @db.DateTime(0)
+  deleted_at   DateTime? @db.DateTime(0)
+  order        order[]
+}
+
+model game {
+  id          Int       @id @default(autoincrement()) @db.UnsignedInt
+  slug        String    @db.VarChar(255)
+  title       String    @db.VarChar(255)
+  description String?   @db.Text
+  created_at  DateTime  @default(now()) @db.DateTime(0)
+  updated_at  DateTime? @db.DateTime(0)
+  deleted_at  DateTime? @db.DateTime(0)
+  product     product[]
+}
+
+model order {
+  id                         Int                 @id @default(autoincrement()) @db.UnsignedInt
+  user_id                    Int
+  product_id                 Int                 @db.UnsignedInt
+  billing_cycle_id           Int                 @db.UnsignedInt
+  promo_code_id              Int?                @db.UnsignedInt
+  order_uuid                 String              @db.VarChar(255)
+  order_group_uuid           String              @db.VarChar(255)
+  panel_server_id            Int?                @db.UnsignedInt
+  panel_allocation_id        Int?                @db.UnsignedInt
+  order_type                 order_order_type?   @default(NEW)
+  order_status               order_order_status?
+  game_slug                  String?             @db.VarChar(255)
+  game_title                 String?             @db.VarChar(255)
+  game_description           String?             @db.Text
+  billing_cycle_name         String?             @db.VarChar(255)
+  billing_cycle_months       Int?                @db.UnsignedInt
+  billing_cycle_disc_percent Decimal?            @db.Decimal(5, 2)
+  special_label              String?             @db.VarChar(255)
+  server_type                order_server_type?
+  recommended_for            String?             @db.Text
+  ram                        Int?                @db.UnsignedInt
+  cpu                        Int?                @db.UnsignedInt
+  disk                       Int?                @db.UnsignedInt
+  price                      Decimal             @db.Decimal(20, 2)
+  billing_cycle_disc_value   Decimal             @default(0.00) @db.Decimal(20, 2)
+  promo_disc_value           Decimal             @default(0.00) @db.Decimal(20, 2)
+  sub_total                  Decimal             @default(0.00) @db.Decimal(20, 2)
+  grand_total                Decimal             @default(0.00) @db.Decimal(20, 2)
+  payment_expired_at         DateTime?           @db.DateTime(0)
+  paid_at                    DateTime?           @db.DateTime(0)
+  payment_transaction_id     String?             @db.VarChar(255)
+  payment_type               String?             @db.VarChar(255)
+  is_promo_expired           Int                 @default(0) @db.UnsignedTinyInt
+  is_affiliate_expired       Int                 @default(0) @db.UnsignedTinyInt
+  affiliate_commission_value Decimal             @default(0.00) @db.Decimal(20, 2)
+  is_affiliate_paid          Int                 @default(0) @db.UnsignedTinyInt
+  order_activated_at         DateTime?           @db.DateTime(0)
+  order_expired_at           DateTime?           @db.DateTime(0)
+  is_cancelled               Int                 @default(0) @db.UnsignedTinyInt
+  renew_order_uuid           String?             @db.VarChar(50)
+  created_at                 DateTime            @default(now()) @db.DateTime(0)
+  updated_at                 DateTime?           @db.DateTime(0)
+  deleted_at                 DateTime?           @db.DateTime(0)
+  billing_cycle              billing_cycle       @relation(fields: [billing_cycle_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_order_billing_cycle_id")
+  product                    product             @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_order_product_id")
+  user                       user                @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_order_user_id")
+  promo_code                 promo_code?         @relation(fields: [promo_code_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "order_promo_code_id_fk")
+
+  @@index([billing_cycle_id], map: "FK_order_billing_cycle_id")
+  @@index([product_id], map: "FK_order_product_id")
+  @@index([user_id], map: "FK_order_user_id")
+  @@index([promo_code_id], map: "order_promo_code_id_fk")
+}
+
+model product {
+  id              Int                 @id @default(autoincrement()) @db.UnsignedInt
+  game_id         Int                 @db.UnsignedInt
+  special_label   String?             @db.VarChar(255)
+  server_type     product_server_type
+  ram             Int?                @db.UnsignedInt
+  cpu             Int?                @db.UnsignedInt
+  disk            Int?                @db.UnsignedInt
+  price           Decimal             @db.Decimal(20, 2)
+  recommended_for String?             @db.Text
+  is_top_seller   Int                 @default(0) @db.UnsignedTinyInt
+  is_featured     Int                 @default(0) @db.UnsignedTinyInt
+  featured_order  Int                 @default(0) @db.UnsignedInt
+  is_active       Int                 @default(1) @db.UnsignedTinyInt
+  created_at      DateTime            @default(now()) @db.DateTime(0)
+  updated_at      DateTime?           @db.DateTime(0)
+  deleted_at      DateTime?           @db.DateTime(0)
+  order           order[]
+  game            game                @relation(fields: [game_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_product_game_id")
+
+  @@index([game_id], map: "FK_product_game_id")
+}
+
+model promo_code {
+  id                        Int       @id @default(autoincrement()) @db.UnsignedInt
+  for_user_id               Int?      @db.UnsignedInt
+  code                      String    @db.VarChar(255)
+  req_game_id               Int?      @db.UnsignedInt
+  req_min_month             Int       @default(0) @db.UnsignedTinyInt
+  req_min_ram               Int       @default(0) @db.UnsignedTinyInt
+  req_min_trx_value         Decimal   @default(0.00) @db.Decimal(20, 2)
+  disc_percent              Int       @default(0)
+  disc_nominal              Decimal   @default(0.00) @db.Decimal(20, 2)
+  disc_max_value            Decimal?  @db.Decimal(20, 2)
+  disc_duration_months      Int?
+  affiliate_percent         Int       @default(0)
+  affiliate_nominal         Decimal   @default(0.00) @db.Decimal(20, 2)
+  affiliate_max_value       Decimal?  @db.Decimal(20, 2)
+  affiliate_duration_months Int?
+  started_at                DateTime? @db.DateTime(0)
+  expired_at                DateTime? @db.DateTime(0)
+  usage_limit               Int       @default(1) @db.UnsignedInt
+  created_at                DateTime  @default(now()) @db.DateTime(0)
+  updated_at                DateTime? @db.DateTime(0)
+  deleted_at                DateTime? @db.DateTime(0)
+  order                     order[]
+}
+
+model settings_keyval {
+  id           Int       @id @default(autoincrement())
+  category     String?   @db.VarChar(255)
+  settings_key String    @db.VarChar(255)
+  settings_val String?   @db.Text
+  notes        String?   @db.Text
+  order_no     Int       @default(0)
+  created_at   DateTime  @default(now()) @db.DateTime(0)
+  updated_at   DateTime? @db.DateTime(0)
+  deleted_at   DateTime? @db.DateTime(0)
+}
+
+model outbound_http_log {
+  id            Int       @id @default(autoincrement()) @db.UnsignedInt
+  log_tag       String?   @db.VarChar(255)
+  request_type  String?   @db.VarChar(10)
+  request_url   String?   @db.VarChar(500)
+  request_body  String?   @db.Text
+  response_json String?   @db.Text
+  notes         String?   @db.Text
+  created_at    DateTime  @default(now()) @db.DateTime(0)
+  updated_at    DateTime? @db.DateTime(0)
+  deleted_at    DateTime? @db.DateTime(0)
+}
+
+model log_email_send {
+  id             Int       @id @default(autoincrement()) @db.UnsignedInt
+  log_type       String    @default("ERROR") @db.VarChar(50)
+  category       String?   @db.VarChar(255)
+  email_template String?   @db.VarChar(255)
+  from           String    @db.VarChar(255)
+  to             String    @db.VarChar(255)
+  subject        String?   @db.Text
+  body           String?   @db.LongText
+  created_at     DateTime  @default(now()) @db.DateTime(0)
+  updated_at     DateTime? @db.DateTime(0)
+  deleted_at     DateTime? @db.DateTime(0)
+}
+
+model admin_user {
+  id           Int           @id @default(autoincrement()) @db.UnsignedInt
+  first_name   String        @db.VarChar(255)
+  last_name    String        @db.VarChar(255)
+  email        String        @db.VarChar(255)
+  username     String        @unique @db.VarChar(255)
+  password     String        @db.VarChar(255)
+  admin_logins admin_login[]
+  created_at   DateTime      @default(now()) @db.DateTime(0)
+  updated_at   DateTime?     @db.DateTime(0)
+  deleted_at   DateTime?     @db.DateTime(0)
+}
+
+model admin_login {
+  id               Int       @id @default(autoincrement()) @db.UnsignedInt
+  admin_user_id    Int       @db.UnsignedInt
+  login_token      String    @db.VarChar(255)
+  token_expired_at DateTime  @db.DateTime(0)
+  user_agent       String?   @db.Text
+  ip_address       String?   @db.VarChar(50)
+  created_at       DateTime  @default(now()) @db.DateTime(0)
+  updated_at       DateTime? @db.DateTime(0)
+  deleted_at       DateTime? @db.DateTime(0)
+
+  admin_user admin_user @relation(fields: [admin_user_id], references: [id])
+
+  @@index([admin_user_id], map: "fk_admin_login_admin_user_id")
+}
+
+enum product_server_type {
+  PREMIUM
+  STANDARD
+}
+
+enum order_server_type {
+  PREMIUM
+  STANDARD
+}
+
+enum order_order_status {
+  PENDING_PAYMENT
+  PAYMENT_EXPIRED
+  COMPLETED
+  SUSPENDED
+  CANCELLED
+  UPGRADED
+}
+
+enum order_order_type {
+  NEW
+  RENEWAL
+  UPGRADE
+}
