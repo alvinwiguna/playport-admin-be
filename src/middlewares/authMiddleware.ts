@@ -30,8 +30,7 @@ export const authMiddleware = (
     }
 
     req.user = {
-      user_panel_id: parseInt(decoded.user_panel_id),
-      user_id: parseInt(decoded.user_id),
+      admin_user_id: parseInt(decoded.admin_user_id),
     };
     next();
   } catch (error) {

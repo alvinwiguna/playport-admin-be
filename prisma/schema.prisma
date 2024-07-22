@@ -217,26 +217,33 @@ model admin_user {
   email        String        @db.VarChar(255)
   username     String        @unique @db.VarChar(255)
   password     String        @db.VarChar(255)
-  admin_logins admin_login[]
   created_at   DateTime      @default(now()) @db.DateTime(0)
   updated_at   DateTime?     @db.DateTime(0)
   deleted_at   DateTime?     @db.DateTime(0)
+  admin_logins admin_login[]
 }
 
 model admin_login {
-  id               Int       @id @default(autoincrement()) @db.UnsignedInt
-  admin_user_id    Int       @db.UnsignedInt
-  login_token      String    @db.VarChar(255)
-  token_expired_at DateTime  @db.DateTime(0)
-  user_agent       String?   @db.Text
-  ip_address       String?   @db.VarChar(50)
-  created_at       DateTime  @default(now()) @db.DateTime(0)
-  updated_at       DateTime? @db.DateTime(0)
-  deleted_at       DateTime? @db.DateTime(0)
-
-  admin_user admin_user @relation(fields: [admin_user_id], references: [id])
+  id               Int        @id @default(autoincrement()) @db.UnsignedInt
+  admin_user_id    Int        @db.UnsignedInt
+  login_token      String     @db.VarChar(255)
+  token_expired_at DateTime   @db.DateTime(0)
+  user_agent       String?    @db.Text
+  ip_address       String?    @db.VarChar(50)
+  created_at       DateTime   @default(now()) @db.DateTime(0)
+  updated_at       DateTime?  @db.DateTime(0)
+  deleted_at       DateTime?  @db.DateTime(0)
+  admin_user       admin_user @relation(fields: [admin_user_id], references: [id])
 
   @@index([admin_user_id], map: "fk_admin_login_admin_user_id")
+}
+model transaction_metrics {
+  id           Int       @id @default(autoincrement()) @db.UnsignedInt
+  metrics_name String    @db.VarChar(255)
+  query        String    @db.Text
+  created_at   DateTime  @default(now()) @db.DateTime(0)
+  updated_at   DateTime? @db.DateTime(0)
+  deleted_at   DateTime? @db.DateTime(0)
 }
 
 enum product_server_type {
