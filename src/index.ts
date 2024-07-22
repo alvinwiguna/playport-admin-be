@@ -3,6 +3,8 @@ import dotenv from "dotenv";
 import cors from "cors";
 
 import auth from "./auth";
+import promo from "./promo_code";
+import dashboard from "./dashboard";
 
 dotenv.config();
 
@@ -14,6 +16,8 @@ app.use(cors());
 app.use(express.static("public"));
 
 app.use(auth);
+app.use(promo);
+app.use(dashboard)
 
 app.get("/", (req: Request, res: Response) => {
     res.send("Welcome to PlayPort Admin");
