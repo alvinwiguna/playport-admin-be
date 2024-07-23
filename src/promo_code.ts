@@ -9,7 +9,7 @@ dotenv.config();
 const prisma = new PrismaClient();
 const router = express.Router();
 
-router.post("/promo-codes", async (req: Request, res: Response) => {
+router.post("/promo-codes", authMiddleware, async (req: MyRequest, res: Response) => {
   const {
     code,
     for_user_id,

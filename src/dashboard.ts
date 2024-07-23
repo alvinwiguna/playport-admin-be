@@ -1,12 +1,13 @@
 import express, { Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import { MyRequest } from "./types/requestTypes";
+import { authMiddleware } from "./middlewares/authMiddleware";
 
 const prisma = new PrismaClient();
 const router = express.Router();
 
 router.get(
-  "/transaction-metrics/:metrics_name",
+  "/transaction-metrics/:metrics_name", authMiddleware,
   async (req: MyRequest, res: Response) => {
     const { metrics_name } = req.params;
     const { start_date, end_date } = req.query;
@@ -44,6 +45,7 @@ router.get(
 
       res.status(200).send({ data });
     } catch (error) {
+        console.log(error)
       res
         .status(500)
         .send({ message: "Error retrieving transaction metrics.", error });
